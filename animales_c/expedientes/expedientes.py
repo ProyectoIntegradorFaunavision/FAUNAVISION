@@ -1,58 +1,63 @@
-<<<<<<< HEAD
-from medicamentos import medicamentos
-from animales_cautiverio import animales_cautiverio
-from veterinarios import veterinarios
-class Expedientes(animales_cautiverio.AnimalesC,medicamentos.Medicamentos,veterinarios.Veterinarios):
-    def __init__(self,id,especie,peso,edad,talla,observaciones,codigo,medicamento,stock,principioActivo,cantConcentrado,
-                    tamano,viaAdm,nombre,apellido1,apellido2,cargo,calle,col,num,codigo_postal,telefono,correo,folio,
-                    animal,veterinario,medi,fechaAplicacion, fechaProxima,dosis,anotaciones):
-        animales_cautiverio.AnimalesC.__init__(self,id,especie,peso,edad,talla,observaciones)
-        medicamentos.Medicamentos.__init__(self,codigo,medicamento,stock,principioActivo,cantConcentrado,tamano,viaAdm)
-        veterinarios.Veterinarios.__init__(self,nombre,apellido1,apellido2,cargo,calle,col,num,codigo_postal,telefono,correo)
-        self._folio=folio
+class Expedientes():
+    def __init__(self,id_historial,animal,veterinario,medicamento,fechaAplicacion,fechaProxima,tipo_evento,peso_actual,diagnostico_motivo):
+        self._id_historial=id_historial
         self._animal=animal
         self._veterinario=veterinario
-        self._medi=medi
-        self._fechaAplicacion=fecha
+        self._medicamento=medicamento
+        self._fechaAplicacion=fechaAplicacion
         self._fechaProxima=fechaProxima
-        self._dosis=dosis
-        self._anotaciones=anotaciones
-
+        self._tipo_evento=tipo_evento
+        self._peso_actual=peso_actual
+        self._diagnostico_motivo=diagnostico_motivo
     @property
-    def folio(self):
-        pass
+    def id_historial(self):
+        return self._id_historial 
     @property
-    def f_apli(self):
-        pass
+    def animal(self):
+        return self._animal
     @property
-    def f_proxima(self):
-        pass
+    def veterinario(self):
+        return self._veterinario
     @property
-    def dosis(self):
-        pass
+    def medicamento(self):
+        return self._medicamento
     @property
-    def observaciones(self):
-        pass
+    def fechaAplicacion(self):
+        return self._fechaAplicacion
+    @property
+    def fechaProxima(self):
+        return self._fechaProxima  
+    @property
+    def tipo_evento(self):
+        return self._tipo_evento     
+    @property
+    def peso_actual(self):
+        return self._peso_actual
+    @property
+    def diagnostico_motivo(self):
+        return self._diagnostico_motivo
 
-    @folio.setter
-    def folio(self):
-        pass
+    @id_historial.setter
+    def id_historial(self, id_historial):
+        self._id_historial = id_historial
+    @fechaAplicacion.setter
+    def fechaAplicacion(self, fechaAplicacion):
+        self._fechaAplicacion = fechaAplicacion
 
-    @f_apli.setter
-    def f_apli(self):
-        pass
+    @fechaProxima.setter
+    def fechaProxima(self, fechaProxima):
+        self._fechaProxima = fechaProxima
+    @tipo_evento.setter
+    def tipo_evento(self, tipo_evento):
+        self._tipo_evento = tipo_evento
+    @peso_actual.setter
+    def peso_actual(self, peso_actual):
+        self._peso_actual = peso_actual 
 
-    @f_proxima.setter
-    def f_proxima(self):
-        pass
+    @diagnostico_motivo.setter
+    def diagnostico_motivo(self, diagnostico_motivo):
+        self._diagnostico_motivo = diagnostico_motivo   
 
-    @dosis.setter
-    def dosis(self):
-        pass
-
-    @observaciones.setter
-    def observaciones(self):
-        pass
     def agregar(self):
         pass
     def actualizar(self):
@@ -63,56 +68,4 @@ class Expedientes(animales_cautiverio.AnimalesC,medicamentos.Medicamentos,veteri
         pass
     def limpiar(self):
         pass
-=======
-from medicamentos import medicamentos
-from animales_cautiverio import animales_cautiverio
-from veterinarios import veterinarios
-class Expedientes(Animales,Medicamentos,Veterinarios):
-    def __init__():
-        pass
-    @property
-    def folio(self):
-        pass
-    @property
-    def f_apli(self):
-        pass
-    @property
-    def f_proxima(self):
-        pass
-    @property
-    def dosis(self):
-        pass
-    @property
-    def observaciones(self):
-        pass
 
-    @folio.setter
-    def folio(self):
-        pass
-
-    @f_apli.setter
-    def f_apli(self):
-        pass
-
-    @f_proxima.setter
-    def f_proxima(self):
-        pass
-
-    @dosis.setter
-    def dosis(self):
-        pass
-
-    @observaciones.setter
-    def observaciones(self):
-        pass
-    def agregar(self):
-        pass
-    def actualizar(self):
-        pass  
-    def borrar(self):
-        pass
-    def mostrar(self):
-        pass
-    def limpiar(self):
-        pass
->>>>>>> 6dae2dd (Guardado Veterinarios y expedientes)
