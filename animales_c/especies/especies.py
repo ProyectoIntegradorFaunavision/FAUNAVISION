@@ -51,7 +51,7 @@ class Especies:
         except Exception as e:
             print("Error al actualizar especie:", e)
             return False
-
+    #Eliminar especie por código
     @staticmethod
     def eliminar(codigo):
         try:
@@ -61,7 +61,7 @@ class Especies:
         except Exception as e:
             print("Error al eliminar especie:", e)
             return False
-
+    #Mostrar todas las especies
     @staticmethod
     def mostrar():
         try:
@@ -70,7 +70,7 @@ class Especies:
         except Exception as e:
             print("Error al mostrar especies:", e)
             return []
-
+    #Buscar especie por código o nombre
     @staticmethod
     def buscar(valor):
         try:
@@ -82,3 +82,13 @@ class Especies:
         except Exception as e:
             print("Error al buscar especie:", e)
             return None
+    def filtrar(self, criterio):
+        try:
+            cursor.execute(
+                "select * from especies where codigo like %s or nombre_especie like %s or nombre_cientifico like %s",
+                (f"%{criterio}%", f"%{criterio}%", f"%{criterio}%"),
+            )
+            return cursor.fetchall()
+        except Exception as e:
+            print("Error al filtrar especies:", e)
+            return []
