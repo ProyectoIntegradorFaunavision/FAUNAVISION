@@ -2,7 +2,7 @@ from CTkMessagebox import CTkMessagebox
 import customtkinter as ctk
 from conexionBD import crear_db, conectar
 
-# Configurar interfaz base
+# Configurar interfaz faunavision
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("green")
 

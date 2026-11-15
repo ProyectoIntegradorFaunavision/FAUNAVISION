@@ -6,7 +6,7 @@ def crear_db():
         cursor = conexion.cursor()
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS especies(
-                id_especie INTEGER PRIMARY KEY,
+                codigo INTEGER PRIMARY KEY,
                 nombre_especie TEXT NOT NULL,
                 nombre_cientifico TEXT NOT NULL UNIQUE
             )
@@ -20,7 +20,7 @@ def crear_db():
                 pesoInicial REAL NOT NULL,
                 estado_salud TEXT NOT NULL,
                 observaciones TEXT,
-                FOREIGN KEY (especie) REFERENCES especies(id_especie)
+                FOREIGN KEY (especie) REFERENCES especies(codigo)
             )
 
             CREATE TABLE IF NOT EXISTS medicamentos(
@@ -43,7 +43,7 @@ def crear_db():
                 num INTEGER NOT NULL,
                 codigo_postal INTEGER NOT NULL,
                 telefono TEXT NOT NULL,
-                correo TEXT NOT NULL unique
+                correo TEXT NOT NULL UNIQUE
             )
 
             CREATE TABLE IF NOT EXISTS expedientes(
@@ -66,10 +66,13 @@ def crear_db():
         conexion.close()
     except sqlite3.Error as e:
         print(f"Error al crear la base de datos: {e}")
+        return None
 
 def conectar():
     try:
         conexion = sqlite3.connect('faunavision.db')
+        conexion.execute("PRAGMA foreign_keys = ON;")
+        
         return conexion
     except sqlite3.Error as e:
         print(f"Error al conectar a la base de datos: {e}")
