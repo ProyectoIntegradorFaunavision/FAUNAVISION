@@ -102,7 +102,7 @@ class Especies:
             print("Error al buscar especie:", e)
             return None
 
-    
+    @staticmethod
     def filtrar(self, criterio):
         try:
             cursor.execute(
