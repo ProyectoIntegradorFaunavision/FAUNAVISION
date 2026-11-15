@@ -2,7 +2,7 @@ from CTkMessagebox import CTkMessagebox
 import customtkinter as ctk
 from conexionBD import crear_db, conectar
 
-# Configurar interfaz base
+# Configurar interfaz faunavision
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("green")
 
@@ -17,9 +17,9 @@ class App(ctk.CTk):
 
     def response_sql(self, respuesta):
         if respuesta:
-            messagebox.showinfo(title="...Exitoso...", message="Acción realizada con éxito")
+            CTkMessagebox(title="...Exitoso...", message="Acción realizada con éxito")
         else:
-            messagebox.showerror(title="..Verifica por favor..", message="Esta acción no se pudo realizar con éxito")
+            CTkMessagebox(title="..Verifica por favor..", message="Esta acción no se pudo realizar con éxito")
 
 
 
