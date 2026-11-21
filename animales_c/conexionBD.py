@@ -10,7 +10,8 @@ def crear_db():
                 nombre_especie TEXT NOT NULL,
                 nombre_cientifico TEXT NOT NULL UNIQUE
             )
-
+            ''')
+        cursor.execute('''
             CREATE TABLE IF NOT EXISTS animales_c(
                 codigo INTEGER PRIMARY KEY,
                 especie INTEGER NOT NULL,
@@ -22,7 +23,8 @@ def crear_db():
                 observaciones TEXT,
                 FOREIGN KEY (especie) REFERENCES especies(id_especie)
             )
-
+            ''')
+        cursor.execute('''
             CREATE TABLE IF NOT EXISTS medicamentos(
                 id_medicamento INTEGER PRIMARY KEY,
                 nombre_medicamento TEXT NOT NULL,
@@ -31,6 +33,8 @@ def crear_db():
                 stock INTEGER NOT NULL,
                 descripcion TEXT
             )
+            ''')
+        cursor.execute('''
 
             CREATE TABLE IF NOT EXISTS veterinarios(
                 num_empleado INTEGER PRIMARY KEY,
@@ -45,6 +49,8 @@ def crear_db():
                 telefono TEXT NOT NULL,
                 correo TEXT NOT NULL unique
             )
+            ''')
+        cursor.execute('''
 
             CREATE TABLE IF NOT EXISTS expedientes(
                 id_historial INTEGER PRIMARY KEY,

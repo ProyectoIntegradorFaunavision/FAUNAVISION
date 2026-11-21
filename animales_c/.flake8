@@ -1,0 +1,6 @@
+# Indica la herramienta que estas son sus reglas
+[flake8]
+#Lienas de código máximo de 100 caracteres
+max-line-length = 100
+#Excluye carpetas sin estos terminos
+exclude = .git,__pycache__,venv,.venv
