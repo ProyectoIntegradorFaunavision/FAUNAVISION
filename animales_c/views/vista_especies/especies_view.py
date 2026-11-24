@@ -8,11 +8,12 @@ import math
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from especies.especies import Especies
+from controllers.especies_controller import EspeciesController
 
 ctk.set_appearance_mode("Light")
 
+
 VERDE_OLIVA = "#84A91C"
-VERDE_OLIVA_HOVER = "#6E8E14"
 VERDE_HEADER_TABLA = "#C5D88A"
 VERDE_BORDE_TABLA = "#9BB354"
 VERDE_LIMA_BTN = "#A3D900"
@@ -23,9 +24,8 @@ BORDE_CAFE_OSCURO = "#3B2618"
 ROJO_PILDORA = "#FF0000"
 ROJO_OSCURO = "#CC0000"
 T_NEGRO = "#000000"
-COLOR_TRANSPARENTE = "#010101"
 EN_EMERGENTE = ("poppins", 20, "bold")
-T_CUERPO = ("poppins", 12, "normal")
+T_CUERPO = ("poppins", 14, "normal")
 C_T_ENTRY= "#A9A9A9"
 
 
@@ -37,10 +37,11 @@ class EspeciesView(ctk.CTk):
         self.title("FaunaVision - Especies")
         self.geometry("900x650")
         self.configure(fg_color="#FFFFFF")
-
+        self.datos_completos=[]
         self.registros_filtrados = []
         self.pagina_actual = 0
-        self.filas_por_pagina = 20
+        self.filas_por_pagina = 15
+        self.controlador=EspeciesController(self, filas_por_pagina=self.filas_por_pagina)
         self.crear_interfaz()
 
     # Método principal que organiza las secciones de la vista
@@ -94,16 +95,57 @@ class EspeciesView(ctk.CTk):
 
         self.acciones_frame.grid_columnconfigure(0, weight=1)
         self.acciones_frame.grid_columnconfigure(1, weight=0)
+        self.acciones_frame.grid_columnconfigure(2, weight=0)
 
-        # Barra de búsqueda
-        self.entry_buscar = ctk.CTkEntry(
-            self.acciones_frame, placeholder_text="Buscar, nombre de especie o código", 
-            width=500, height=42, corner_radius=21,
-            fg_color="white", border_color="#000000", border_width=2,
-            font=("poppins", 12, "normal"), text_color="#757575"
+        self.buscar_contenedor = ctk.CTkFrame(
+            self.acciones_frame,
+            height=42,
+            corner_radius=21,
+            fg_color="#FFFFFF",
+            border_color="#000000",
+            border_width=2,
         )
-        self.entry_buscar.grid(row=0, column=0, sticky="ew", padx=(0, 15), pady=5)
-        self.entry_buscar.bind("<KeyRelease>", self.filtrar_tabla)
+        self.buscar_contenedor.grid(row=0, column=0, sticky="ew", padx=(0, 10), pady=5)
+        self.buscar_contenedor.grid_columnconfigure(0, weight=1)
+        self.buscar_contenedor.grid_columnconfigure(1, weight=0)
+        self.buscar_contenedor.grid_propagate(False)
+
+        self.entry_buscar = ctk.CTkEntry(
+            self.buscar_contenedor,
+            placeholder_text="Buscar, nombre de especie o código",
+            height=36,
+            border_width=0,
+            fg_color="transparent",
+            font=("poppins", 12, "normal"),
+            text_color="#111111",
+        )
+        self.entry_buscar.grid(row=0, column=0, sticky="ew", padx=(14, 4), pady=2)
+        self.entry_buscar.bind("<KeyRelease>", lambda _e: self.buscar_tabla())
+
+        # Botón interno para enviar a buscar
+        self.lbl_buscar = ctk.CTkLabel(
+            self.buscar_contenedor,
+            text="🔍",
+            text_color=T_NEGRO,
+            font=("poppins", 15, "bold"),
+            
+        )
+        self.lbl_buscar.grid(row=0, column=1, padx=(0, 15), pady=4)
+
+        # self.btn_filtro = ctk.CTkButton(
+        #     self.acciones_frame,
+        #     text="☰", 
+        #     width=42,
+        #     height=42,
+        #     corner_radius=1,
+        #     fg_color="#FFFFFF",
+        #     hover_color="#F2F2F2",
+        #     text_color="#111111",
+        #     font=("poppins", 20, "normal"),
+        #     command=None,
+        #     )
+        # self.btn_filtro.grid(row=0, column=1, padx=(0, 15), pady=5)
+
 
         # Botón Añadir Especie
         self.btn_añadir = ctk.CTkButton(
@@ -174,16 +216,62 @@ class EspeciesView(ctk.CTk):
                     c, weight=self.pesos_columnas[c], uniform="col"
                 )
                 fila_frame.grid_rowconfigure(0, weight=1)
-                lbl = tk.Label(
-                    fila_frame,
-                    text="",
-                    font=("Poppins", 10),
-                    fg=VERDE_OLIVA if c == 4 else "#111111",
-                    bg=FONDO_BLANCO,
-                    anchor="w" if c > 0 else "center",
-                )
-                lbl.grid(row=0, column=c, sticky="ew", padx=10)
-                celdas.append(lbl)
+                if c == 4:
+                    acciones_celda = tk.Frame(fila_frame, bg=FONDO_BLANCO)
+                    acciones_celda.grid(row=0,column=c,sticky="ew",padx=6)
+                    btn_editar = ctk.CTkButton(
+                        acciones_celda,
+                        text="✏",
+                        width=28,
+                        height=18,
+                        font=("poppins",15,"normal"),
+                        fg_color="transparent",
+                        hover_color="#6D8927",
+                        border_width=1.5,
+                        border_color=VERDE_LIMA_HOVER,
+                        text_color=T_NEGRO,
+                        corner_radius=8,
+                        cursor="hand2",
+                    )
+
+                    btn_editar.pack(side="left", padx=(0, 4))
+
+                    btn_eliminar = ctk.CTkButton(
+                        acciones_celda,
+                        text="🗑",
+                        width=24,
+                        height=18,
+                        font=("poppins",15,"normal"),
+                        fg_color="transparent",
+                        hover_color=ROJO_PILDORA,
+                        border_width=1.5,
+                        border_color=ROJO_OSCURO,
+                        text_color=T_NEGRO,
+                        corner_radius=8,
+                        cursor="hand2",
+                    )
+                    btn_eliminar.pack(side="left")
+
+                    # Ocultos por defecto hasta que haya registro en esa fila
+                    btn_editar.pack_forget()
+                    btn_eliminar.pack_forget()
+
+                    celdas.append({
+                        "frame": acciones_celda,
+                        "editar": btn_editar,
+                        "eliminar": btn_eliminar,
+                    })
+                else:
+                    lbl = tk.Label(
+                        fila_frame,
+                        text="",
+                        font=("Poppins", 10),
+                        fg="#111111",
+                        bg=FONDO_BLANCO,
+                        anchor="w" if c > 0 else "center",
+                    )
+                    lbl.grid(row=0, column=c, sticky="ew", padx=10)
+                    celdas.append(lbl)
 
             self.filas_widgets.append(celdas)
 
@@ -211,16 +299,24 @@ class EspeciesView(ctk.CTk):
         print("Navegando a Animales Cautiverio")
 
     def cargar_datos(self):
-        self.registros_mostrar = Especies.mostrar()
+        self.registros_filtrados = self.controlador.mostrarController() or []
         self.pagina_actual = 0
         self.renderizar_tabla()
 
-    def filtrar_tabla(self, event=None):
+    def buscar_tabla(self):
         criterio = self.entry_buscar.get().strip()
+
         if criterio:
-            self.registros_filtrados = Especies.filtrar(criterio) or []
+            resultados = self.controlador.buscarController(criterio)
+            if resultados is None and hasattr(self.controlador, "mostrarController"):
+                try:
+                    resultados = self.controlador.mostrarController(criterio)
+                except TypeError:
+                    resultados = []
+            self.registros_filtrados = resultados or []
         else:
-            self.registros_filtrados = Especies.mostrar() or []
+            self.registros_filtrados = self.controlador.mostrarController() or []
+
         self.pagina_actual = 0
         self.renderizar_tabla()
 
@@ -231,8 +327,8 @@ class EspeciesView(ctk.CTk):
     def renderizar_tabla(self):
         inicio = self.pagina_actual * self.filas_por_pagina
         pagina_datos = self.registros_filtrados[inicio : inicio + self.filas_por_pagina]
-
-        for idx_fila in range(self.filas_por_pagina):
+        
+        for idx_fila in range(self.filas_por_pagina):  
             celdas = self.filas_widgets[idx_fila]
             if idx_fila < len(pagina_datos):
                 dato_celda = pagina_datos[idx_fila]
@@ -242,22 +338,26 @@ class EspeciesView(ctk.CTk):
                     str(dato_celda[0]),
                     str(dato_celda[1]),
                     str(dato_celda[2]),
-                  #  "Ver más",
                 ]
                 for c_idx, valor in enumerate(valores):
-                    celdas[c_idx].configure(text=valor)
-                    if c_idx == 4:
-                        celdas[c_idx].configure(cursor="hand2", font=("Poppins", 12, "bold"))
-                        celdas[c_idx].bind(
-                            "<Button-1>", lambda e, m=valor: self.abrir_ventana_redondeada(m)
-                        )
-                    else:
-                        celdas[c_idx].configure(cursor="", font=("Poppins", 12))
-                        celdas[c_idx].unbind("<Button-1>")
+                    celdas[c_idx].configure(text=valor, font=("Poppins", 10))
+
+                acciones = celdas[4]
+                acciones["eliminar"].pack(side="left", padx=(0, 6))
+                acciones["editar"].pack(side="left")
+                acciones["eliminar"].configure(
+                    command=lambda fila=dato_celda: self.ventanaEliminar(fila)
+                )
+                acciones["editar"].configure(
+                    command=lambda fila=dato_celda: self.ventanaModificar(fila)
+                )
             else:
-                for c_idx in range(5):
-                    celdas[c_idx].configure(text="", cursor="", font=("Poppins", 12))
-                    celdas[c_idx].unbind("<Button-1>")
+                for c_idx in range(4):
+                    celdas[c_idx].configure(text="", font=("Poppins", 15))
+
+                acciones = celdas[4]
+                acciones["eliminar"].pack_forget()
+                acciones["editar"].pack_forget()
 
         self.construir_paginacion()
 
@@ -315,27 +415,27 @@ class EspeciesView(ctk.CTk):
         # Puntos suspensivos en cantidad masiva de paginas
             if ultimo_idx != -1 and p - ultimo_idx > 1:
                 lbl_puntos = ctk.CTkLabel(
-                self.paginacion_frame,
-                text="...",
-                font=("Poppins", 12, "bold"),
-                text_color="#555555",
+                    self.paginacion_frame,
+                    text="...",
+                    font=("Poppins", 12, "bold"),
+                    text_color="#555555",
                 )
-        lbl_puntos.pack(side="left", padx=4)
+                lbl_puntos.pack(side="left", padx=4)
 
         # Botón numérico de página
-        especies_actual = p == self.pagina_actual
-        btn_p = ctk.CTkButton(
-            self.paginacion_frame,
-            text=str(p + 1),
-            fg_color="#84A91C" if especies_actual else "#757575",
-            hover_color=VERDE_OLIVA,
-            command=lambda idx=p: self.cambiar_pagina(idx),
-            **ESTILO_BTN,
-        )
-        btn_p.pack(side="left", padx=2)
-        ultimo_idx = p
+            especies_actual = p == self.pagina_actual
+            btn_p = ctk.CTkButton(
+                self.paginacion_frame,
+                text=str(p + 1),
+                fg_color="#84A91C" if especies_actual else "#757575",
+                hover_color=VERDE_OLIVA,
+                command=lambda idx=p: self.cambiar_pagina(idx),
+                **ESTILO_BTN,
+            )
+            btn_p.pack(side="left", padx=2)
+            ultimo_idx = p
 
-        # Botón siguiente
+                # Botón siguiente
         btn_siguiente = ctk.CTkButton(
             self.paginacion_frame,
             text=">",
@@ -351,335 +451,11 @@ class EspeciesView(ctk.CTk):
         )
         btn_siguiente.pack(side="left", padx=2)
 
-    # def crear_ventana_redondeada(self, padre, ancho, alto):
-    #     ventana = ctk.CTkToplevel(
-    #         padre, 
-    #         title="Especies"
-    #         )
-    #     ventana.resizable(False, False)
-    #     ventana.configure(fg_color=COLOR_TRANSPARENTE)
-    #     try:
-    #         ventana.attributes("-transparentcolor", COLOR_TRANSPARENTE)
-    #     except Exception:
-    #         ventana.configure(fg_color=FONDO_BLANCO)
-       
-
-    #     padre.update_idletasks()
-    #     x = padre.winfo_rootx() + (padre.winfo_width() // 2) - (ancho // 2)
-    #     y = padre.winfo_rooty() + (padre.winfo_height() // 2) - (alto // 2)
-    #     ventana.geometry(f"{ancho}x{alto}+{x}+{y}")
-    #     return ventana
-
-    def respuesta_alerta(self, padre, mensaje, tipo="info"):
-         if mensaje:
-            CTkMessagebox.CTkMessagebox(title="Exitoso", message="Acción realizada con exito" )
-         else:
-            CTkMessagebox.CTkMessagebox(title="Verifica por favor", message="Esta acción no se pudo realizar con exito")
  
-
-    #     def aceptar():#Borrar funcion
-    #         alerta.destroy()
-    #         if al_aceptar:
-    #             al_aceptar()
-
-
-
-
-    # def crear_ventana_info(self, parent, valores=None, bloquear_codigo=False):
-    #     frame_info = ctk.CTkFrame(
-    #         parent,
-    #         fg_color="#FFFFFF",          # Ejemplo: color de fondo en CustomTkinter
-    #         border_width=2,             # Grosor del borde
-    #         border_color=NEGRO_BORDE    # Color del borde
-    #     )
-    #     frame_info.pack(fill="none", padx=28, pady=(12, 18))
-
-
-    #     def celda(row, col, colspan, label_txt, val="", readonly=False):
-    #         cell = ctk.CTkFrame(
-    #             frame_Info,
-    #             bg=FONDO_BLANCO,
-    #             height=32,
-    #             bd=0,
-    #         )
-    #         cell.grid(
-    #             row=row,
-    #             column=col,
-    #             columnspan=colspan,
-    #             sticky="nsew",
-    #             padx=(0 if col == 0 else 1, 0),
-    #             pady=(0 if row == 0 else 1, 0),
-    #         )
-    #         cell.pack_propagate(False)
-
-    #         lbl = tk.Label(
-    #             cell,
-    #             text=label_txt,
-    #             font=("Poppins", 9, "bold"),
-    #             fg="#666666" if not val else "#111111",
-    #             bg=FONDO_BLANCO,
-    #         )
-    #         lbl.pack(side="left", padx=(8, 4))
-
-    #         entry = tk.Entry(
-    #             cell,
-    #             bd=0,
-    #             highlightthickness=0,
-    #             bg=FONDO_BLANCO,
-    #             disabledbackground=FONDO_BLANCO,
-    #             disabledforeground="#111111",
-    #             fg="#111111",
-    #             font=("Poppins", 9),
-    #         )
-    #         entry.pack(side="left", fill="both", expand=True, padx=(0, 8))
-    #         if val != "":
-    #             entry.insert(0, str(val))
-    #         if readonly:
-    #             entry.configure(state="disabled")
-    #         return entry
-
-    #     frame_Info.grid_columnconfigure(0, weight=1)
-
-    #     v = valores or ("", "", "")
-    #     e_codigo = celda(0, 0, 1, "Código:", v[0], readonly=bloquear_codigo)
-    #     e_nombre = celda(1, 0, 1, "Nombre de la especie:", v[1])
-    #     e_cientifico = celda(2, 0, 1, "Nombre Científico:", v[2])
-
-    #     return e_codigo, e_nombre, e_cientifico
-
-    # def ventanaAgregar(self):
-    #     modal = self.crear_ventana_redondeada(self, 450, 275)
-
-    #     marco = ctk.CTkFrame(
-    #         modal,
-    #         fg_color=FONDO_CREMA_MODAL,
-    #         border_width=1,
-    #         corner_radius=2,
-    #         bg_color=COLOR_TRANSPARENTE,
-    #     )
-    #     marco.pack(fill="both", expand=True)
-
-    #     top = ctk.CTkFrame(marco, fg_color=FONDO_CREMA_MODAL)
-    #     top.pack(fill="x", padx=20, pady=(16, 4))
-
-    #     ctk.CTkLabel(
-    #         top,
-    #         text="Ingresar nueva Especie",
-    #         font=("Poppins", 13, "bold"),
-    #         text_color="#111111",
-    #         fg_color=FONDO_CREMA_MODAL,
-    #     ).pack(side="left", padx=(15, 0))
-
-    #     ctk.CTkButton(
-    #          top,
-    #          text="✕",
-    #          width=26,
-    #          height=26,
-    #          corner_radius=13,
-    #          fg_color=ROJO_PILDORA,
-    #          hover_color=ROJO_OSCURO,
-    #          border_color=NEGRO_BORDE,
-    #          border_width=1,
-    #          text_color="#111111",
-    #          font=("Poppins", 12, "bold"),
-    #          command=modal.destroy,
-    #      ).pack(side="right")
-
-    #     e_codigo, e_nombre, e_cientifico = self.crear_ventana_info(marco)
-
-    #     btns = ctk.CTkFrame(marco, fg_color=FONDO_CREMA_MODAL)
-    #     btns.pack(pady=(2, 16))
-
-    #     def guardar():
-    #         codigo = e_codigo.get().strip()
-    #         nombre = e_nombre.get().strip()
-    #         cientifico = e_cientifico.get().strip()
-
-    #         if not all([codigo, nombre, cientifico]):
-    #             self.respuesta_alerta(
-    #                 modal, "Datos incorrectos. Verifique la información ingresada."
-    #             )
-    #             return
-
-    #         nueva_especie = Especies(codigo, nombre, cientifico)
-    #         if nueva_especie.insertar():
-    #             def cerrar_y_refrescar():
-    #                 modal.destroy()
-    #                 self.cargar_datos()
-
-    #             self.respuesta_alerta(
-    #                 modal, "Acción realizada con éxito", al_aceptar=cerrar_y_refrescar
-    #             )
-    #         else:
-    #             self.respuesta_alerta(
-    #                 modal,
-    #                 "En este momento no se pudo realizar la acción. Por favor, inténtelo de nuevo más tarde.",
-    #             )
-
-    #     ctk.CTkButton(
-    #         btns,
-    #         text="Guardar",
-    #         width=85,
-    #         height=24,
-    #         corner_radius=12,
-    #         fg_color=VERDE_LIMA_BTN,
-    #         hover_color=VERDE_LIMA_HOVER,
-    #         border_color=VERDE_OLIVA,
-    #         border_width=1,
-    #         text_color="#111111",
-    #         font=("Poppins", 10, "bold"),
-    #         command=guardar,
-    #     ).pack(side="left", padx=8)
-
-    #     ctk.CTkButton(
-    #         btns,
-    #         text="Cancelar",
-    #         width=85,
-    #         height=24,
-    #         corner_radius=12,
-    #         fg_color=FONDO_BLANCO,
-    #         hover_color="#FFEBEB",
-    #         border_color=ROJO_PILDORA,
-    #         border_width=1,
-    #         text_color="#111111",
-    #         font=("Poppins", 10),
-    #         command=modal.destroy,
-    #     ).pack(side="left", padx=8)
-
-    # def abrir_ventana_redondeada(self, esp):
-    #     modal = self.crear_ventana_redondeada(self, 450, 275)
-
-    #     marco = ctk.CTkFrame(
-    #         modal,
-    #         fg_color=FONDO_CREMA_MODAL,
-    #         border_color=BORDE_CAFE_OSCURO,
-    #         border_width=3,
-    #         corner_radius=14,
-    #         bg_color=COLOR_TRANSPARENTE,
-    #     )
-    #     marco.pack(fill="both", expand=True)
-
-    #     top = ctk.CTkFrame(marco, fg_color=FONDO_CREMA_MODAL)
-    #     top.pack(fill="x", padx=20, pady=(16, 4))
-
-    #     ctk.CTkLabel(
-    #         top,
-    #         text=f"Especie: {esp[1]}",
-    #         font=("Poppins", 13, "bold"),
-    #         text_color="#111111",
-    #         fg_color=FONDO_CREMA_MODAL,
-    #     ).pack(side="left", padx=(15, 0))
-
-    #     ctk.CTkButton(
-    #         top,
-    #         text="✕",
-    #         width=26,
-    #         height=26,
-    #         corner_radius=13,
-    #         fg_color=ROJO_PILDORA,
-    #         hover_color=ROJO_OSCURO,
-    #         border_color=NEGRO_BORDE,
-    #         border_width=1,
-    #         text_color="#111111",
-    #         font=("Poppins", 12, "bold"),
-    #         command=modal.destroy,
-    #     ).pack(side="right")
-
-    #     e_codigo, e_nombre, e_cientifico = self._crear_ventana_info(
-    #         marco, valores=esp, bloquear_codigo=True
-    #     )
-
-    #     btns = ctk.CTkFrame(marco, fg_color=FONDO_CREMA_MODAL)
-    #     btns.pack(pady=(2, 16))
-
-    #     def ejecutar_modificar():
-    #         nombre = e_nombre.get().strip()
-    #         cientifico = e_cientifico.get().strip()
-
-    #         if not all([nombre, cientifico]):
-    #             self.respuesta_alerta(
-    #                 modal, "Datos incorrectos. Verifique la información ingresada."
-    #             )
-    #             return
-
-    #         def guardar_cambios():
-    #             actualizada = Especies(esp[0], nombre, cientifico)
-    #             if actualizada.actualizar():
-    #                 def cerrar_todo():
-    #                     modal.destroy()
-    #                     self.cargar_datos()
-
-    #                 self.respuesta_alerta(
-    #                     modal, "Acción realizada con éxito", al_aceptar=cerrar_todo
-    #                 )
-    #             else:
-    #                 self.respuesta_alerta(
-    #                     modal,
-    #                     "En este momento no se pudo realizar la acción. Por favor, inténtelo de nuevo más tarde.",
-    #                 )
-
-    #         self.respuesta_alerta(
-    #             modal,
-    #             "¿Estás seguro que deseas guardar las modificaciones de este registro?",
-    #             tipo="confirmar",
-    #             al_aceptar=guardar_cambios,
-    #         )
-
-    #     def ejecutar_eliminar():
-    #         def borrar_registro():
-    #             if Especies.eliminar(esp[0]):
-    #                 def cerrar_todo():
-    #                     modal.destroy()
-    #                     self.cargar_datos()
-
-    #                 self.respuesta_alerta(
-    #                     modal, "Acción realizada con éxito", al_aceptar=cerrar_todo
-    #                 )
-    #             else:
-    #                 self.respuesta_alerta(
-    #                     modal,
-    #                     "En este momento no se pudo realizar la acción. Por favor, inténtelo de nuevo más tarde.",
-    #                 )
-
-    #         self.respuesta_alerta(
-    #             modal,
-    #             "¿Estás seguro que deseas eliminar este registro?",
-    #             tipo="confirmar",
-    #             al_aceptar=borrar_registro,
-    #         )
-
-    #     ctk.CTkButton(
-    #         btns,
-    #         text="Modificar",
-    #         width=85,
-    #         height=24,
-    #         corner_radius=12,
-    #         fg_color=VERDE_LIMA_BTN,
-    #         hover_color=VERDE_LIMA_HOVER,
-    #         text_color="#111111",
-    #         font=("Poppins", 10, "bold"),
-    #         command=ejecutar_modificar,
-    #     ).pack(side="left", padx=8)
-
-    #     ctk.CTkButton(
-    #         btns,
-    #         text="Eliminar",
-    #         width=85,
-    #         height=24,
-    #         corner_radius=12,
-    #         fg_color=ROJO_PILDORA,
-    #         hover_color=ROJO_OSCURO,
-    #         text_color="#111111",
-    #         font=("Poppins", 10),
-    #         command=ejecutar_eliminar,
-    #     ).pack(side="left", padx=8)
-
     def ventanaEmergente(self,ancho,alto):
-        ancho = 500
-        alto = 500
-
         ventanaEmergente = ctk.CTkToplevel(self)
-        ventanaEmergente.title("Añadir Nueva Especie")
+        ventanaEmergente.title("Añadir nueva Especie")
+
         ventanaEmergente.pack_propagate(False)
         ventanaEmergente.grid_propagate(False)
         ventanaEmergente.minsize(ancho, alto)
@@ -691,15 +467,21 @@ class EspeciesView(ctk.CTk):
         y = int(self.winfo_rooty() + (self.winfo_height() // 2) - (alto // 2))
         x = max(0, x)
         y = max(0, y)
+
         ventanaEmergente.geometry(f"{ancho}x{alto}+{x}+{y}")
         ventanaEmergente.after(50, lambda: ventanaEmergente.geometry(f"{ancho}x{alto}+{x}+{y}"))
-        ventanaEmergente.grab_set()
         ventanaEmergente.configure(fg_color="#FFFCF4")
+        ventanaEmergente.lift()
+        ventanaEmergente.focus_force()
+        ventanaEmergente.grab_set()
+       
+        
+        
 
         return ventanaEmergente
     
     def ventanaAñadir(self):
-        self.vAñadir= self.ventanaEmergente(300,300)
+        self.vAñadir= self.ventanaEmergente(350,300)
         self.vAñadir.title("Añadir Nueva Especie")
 
         self.frameCabeza= ctk.CTkFrame(self.vAñadir,fg_color="transparent")
@@ -708,9 +490,6 @@ class EspeciesView(ctk.CTk):
 
         self.frameCampos = ctk.CTkFrame(self.vAñadir,fg_color="transparent")
         self.frameCampos.pack(fill="x",padx=10,pady=10)
-
-        self.frameObservaciones = ctk.CTkFrame(self.vAñadir,fg_color="transparent")
-        self.frameObservaciones.pack(fill="both",expand=True,padx=10,pady=10)
 
         self.frameBotones = ctk.CTkFrame(self.vAñadir, fg_color="transparent")
         self.frameBotones.pack(fill="x", padx=14, pady=(6, 12))
@@ -726,7 +505,7 @@ class EspeciesView(ctk.CTk):
         tituloAñadir.grid(row=0, column=0,pady=(5,2))
         subt = ctk.CTkLabel(
             self.frameCabeza,
-            text="Nuevo animal en cautiverio",
+            text="Nueva Especie",
             font=("poppins", 15, "normal"),
             text_color=T_NEGRO
             )
@@ -741,7 +520,7 @@ class EspeciesView(ctk.CTk):
         lbl_codigo.grid(row=2, column=0, pady=5, padx=(15, 3),sticky="e")
         self.codigo=ctk.CTkEntry(
             self.frameCampos,
-            placeholder_text="A12451",
+            placeholder_text="12451",
             font=T_CUERPO,
             placeholder_text_color=C_T_ENTRY         
             )
@@ -750,121 +529,42 @@ class EspeciesView(ctk.CTk):
 
         lbl_especie= ctk.CTkLabel(
             self.frameCampos,
-            text="Especie:",
+            text="Nombre Especie:",
             font=T_CUERPO,
             text_color=T_NEGRO,
         )
-        lbl_especie.grid(row=2, column=2, pady=5, padx=(15, 3),sticky="e")
-        self.especie=ctk.CTkEntry(
+        lbl_especie.grid(row=3, column=0, pady=5, padx=(15, 3),sticky="e")
+        self.nombre_especie=ctk.CTkEntry(
             self.frameCampos,
             placeholder_text="Lobo Mexicano",
             font=T_CUERPO,
             placeholder_text_color=C_T_ENTRY         
             )
-        self.especie.grid(row=2, column=3, pady=5, padx=(15, 3))
+        self.nombre_especie.grid(row=3, column=1, pady=5, padx=(15, 3))
 
-        lbl_sexo = ctk.CTkLabel(
+        lbl_cientifico = ctk.CTkLabel(
             self.frameCampos,
-            text="Sexo:",
+            text="Nombre científico:",
             font=T_CUERPO,
             text_color=T_NEGRO,
         )
-        lbl_sexo.grid(row=3, column=0, pady=5, padx=(15, 3),sticky="e")
-        self.sexo=ctk.CTkEntry(
+        lbl_cientifico.grid(row=4, column=0, pady=5, padx=(15, 3),sticky="e")
+        self.nombre_cientifico=ctk.CTkEntry(
             self.frameCampos,
-            placeholder_text="Macho",
+            placeholder_text="Canis lupus",
             font=T_CUERPO,
             placeholder_text_color=C_T_ENTRY         
             )
-        self.sexo.grid(row=3, column=1, pady=5, padx=(15, 3))
-
-        lbl_peso= ctk.CTkLabel(
-            self.frameCampos,
-            text="Peso:",
-            font=T_CUERPO,
-            text_color=T_NEGRO,
-        )
-        lbl_peso.grid(row=3, column=2, pady=5, padx=(15, 3),sticky="e")
-        self.peso=ctk.CTkEntry(
-            self.frameCampos,
-            placeholder_text="25",
-            font=T_CUERPO,
-            placeholder_text_color=C_T_ENTRY         
-            )
-        self.peso.grid(row=3, column=3, pady=5, padx=(15, 3))
-
-
-        lbl_estado = ctk.CTkLabel(
-            self.frameCampos,
-            text="Estado\nActual:",
-            font=T_CUERPO,
-            text_color=T_NEGRO,
-        )
-        lbl_estado.grid(row=4, column=0, pady=5, padx=(15, 3),sticky="e")
-        self.estado=ctk.CTkEntry(
-            self.frameCampos,
-            placeholder_text="Bueno",
-            font=T_CUERPO,
-            placeholder_text_color=C_T_ENTRY         
-            )
-        self.estado.grid(row=4, column=1, pady=5, padx=(15, 3))
-
-        lbl_fIngreso= ctk.CTkLabel(
-            self.frameCampos,
-            text="Fecha\nIngreso:",
-            font=T_CUERPO,
-            text_color=T_NEGRO,
-        )
-        lbl_fIngreso.grid(row=4, column=2, pady=5, padx=(15, 3),sticky="e")
-        self.fIngreso=ctk.CTkEntry(
-            self.frameCampos,
-            placeholder_text="DD/MM/AAAA",
-            font=T_CUERPO,
-            placeholder_text_color=C_T_ENTRY         
-            )
-        self.fIngreso.grid(row=4, column=3, pady=5, padx=(15, 3))
-
-        lbl_fNacimiento= ctk.CTkLabel(
-            self.frameCampos,
-            text="Fecha\nNacimiento:",
-            font=T_CUERPO,
-            text_color=T_NEGRO,
-        )
-        lbl_fNacimiento.grid(row=5, column=0, pady=5, padx=(15, 3),sticky="e")
-        self.fNacimiento=ctk.CTkEntry(
-            self.frameCampos,
-            placeholder_text="DD/MM/AAAA",
-            font=T_CUERPO,
-            placeholder_text_color=C_T_ENTRY         
-            )
-        self.fNacimiento.grid(row=5, column=1, pady=5, padx=(15, 3))
-
-        lbl_observaciones=ctk.CTkLabel(
-            self.frameObservaciones,
-            text="Escribe una observación breve:",
-            font=T_CUERPO,
-            text_color=T_NEGRO
-        )
-        lbl_observaciones.pack(anchor="w", padx=4, pady=(0, 4))
-        self.observaciones=ctk.CTkTextbox(
-            self.frameObservaciones,
-            corner_radius=12,
-            border_width=2,
-            height=40,
-            font=T_CUERPO,
-            fg_color="#FFFFFF",
-            text_color=T_NEGRO                   
-        )
-        self.observaciones.pack(fill="both", expand=True)
+        self.nombre_cientifico.grid(row=4, column=1, pady=5, padx=(15, 3))
 
         self.btn_guardar=ctk.CTkButton(
             self.frameBotones,
             text="Guardar",
             font=T_CUERPO,
             text_color=T_NEGRO,
-            fg_color=VERDE_LIMA_BTN,
+            fg_color=VERDE_LIMA_HOVER,
             corner_radius=20,
-            command=None
+            command= self.controlador.insertarController
         )      
         self.btn_guardar.grid(row=0,column=0, padx=(0, 8), sticky="e")
 
@@ -877,15 +577,177 @@ class EspeciesView(ctk.CTk):
             border_color=ROJO_OSCURO,
             text_color=T_NEGRO,
             corner_radius=20,
-            command=lambda: self.vAñadir.destroy
+            command=self.vAñadir.destroy
         )
         self.btn_cancelar.grid(row=0, column=1, padx=(8, 0), sticky="w")
-  
+
+    def limpiar_campos_anadir(self):
+        for entry in (self.codigo, self.nombre_especie, self.nombre_cientifico):
+            entry.delete(0, "end")
+        self.codigo.focus()
+
+    def ventanaModificar(self,fila):
+        self.vModificar= self.ventanaEmergente(350,300)
+        self.vModificar.title("Modificar Especie")
+
+        self.frameCabeza= ctk.CTkFrame(self.vModificar,fg_color="transparent")
+        self.frameCabeza.pack(fill="x",padx=10,pady=10)
+        self.frameCabeza.grid_columnconfigure(0, weight=1)
+
+        self.frameCampos = ctk.CTkFrame(self.vModificar,fg_color="transparent")
+        self.frameCampos.pack(fill="x",padx=10,pady=10)
+
+        self.frameBotones = ctk.CTkFrame(self.vModificar, fg_color="transparent")
+        self.frameBotones.pack(fill="x", padx=14, pady=(6, 12))
+        self.frameBotones.grid_columnconfigure(0, weight=1)
+        self.frameBotones.grid_columnconfigure(1, weight=1)
+
+        self.codigo_actual = fila[0]
+        self.nuevo_nombre = fila[1]
+        self.nuevo_cientifico = fila[2]
+
+        tituloModificar=ctk.CTkLabel(
+            self.frameCabeza,
+            text="Modificar",
+            font=EN_EMERGENTE,
+            text_color=T_NEGRO
+            )
+        tituloModificar.grid(row=0, column=0,pady=(5,2))
+        subt = ctk.CTkLabel(
+            self.frameCabeza,
+            text="Especie",
+            font=("poppins", 15, "normal"),
+            text_color=T_NEGRO
+            )
+        subt.grid(row=1, column=0,pady=(0,5))
+
+        lbl_codigo = ctk.CTkLabel(
+            self.frameCampos,
+            text="Código:",
+            font=T_CUERPO,
+            text_color=T_NEGRO,
+        )
+        lbl_codigo.grid(row=2, column=0, pady=5, padx=(15, 3),sticky="e")
+        self.codigo=ctk.CTkEntry(
+            self.frameCampos,
+            font=T_CUERPO,
+            placeholder_text_color=T_NEGRO         
+            )
+        self.codigo.grid(row=2, column=1, pady=5, padx=(15, 3))
+        self.codigo.delete(0, "end")
+        self.codigo.insert(0, str(self.codigo_actual))
+        self.codigo.configure(state="disabled")
 
 
+        lbl_especie= ctk.CTkLabel(
+            self.frameCampos,
+            text="Nombre Especie:",
+            font=T_CUERPO,
+            text_color=T_NEGRO,
+        )
 
+        lbl_especie.grid(row=3, column=0, pady=5, padx=(15, 3),sticky="e")
+        self.nombre_especie=ctk.CTkEntry(
+            self.frameCampos,
+            font=T_CUERPO,
+            placeholder_text_color=C_T_ENTRY         
+            )
+        self.nombre_especie.grid(row=3, column=1, pady=5, padx=(15, 3))
+        self.nombre_especie.delete(0, "end")
+        self.nombre_especie.insert(0, str(self.nuevo_nombre))
 
+        lbl_cientifico = ctk.CTkLabel(
+            self.frameCampos,
+            text="Nombre científico:",
+            font=T_CUERPO,
+            text_color=T_NEGRO,
+        )
+        lbl_cientifico.grid(row=4, column=0, pady=5, padx=(15, 3),sticky="e")
+        self.nombre_cientifico=ctk.CTkEntry(
+            self.frameCampos,
+            font=T_CUERPO,
+            placeholder_text_color=C_T_ENTRY         
+            )
+        self.nombre_cientifico.grid(row=4, column=1, pady=5, padx=(15, 3))
+        self.nombre_cientifico.delete(0, "end")
+        self.nombre_cientifico.insert(0, str(self.nuevo_cientifico))
 
+        self.btn_guardar=ctk.CTkButton(
+            self.frameBotones,
+            text="Guardar",
+            font=T_CUERPO,
+            text_color=T_NEGRO,
+            fg_color=VERDE_LIMA_HOVER,
+            corner_radius=20,
+            command= self.controlador.modificarController
+            
+        )      
+        self.btn_guardar.grid(row=0,column=0, padx=(0, 2), sticky="e")
+
+        self.btn_cancelar = ctk.CTkButton(
+            self.frameBotones,
+            text="Cancelar",
+            font=T_CUERPO,
+            fg_color="transparent",
+            border_width=2,
+            border_color=ROJO_OSCURO,
+            text_color=T_NEGRO,
+            corner_radius=20,
+            command=self.vModificar.destroy
+        )
+        self.btn_cancelar.grid(row=0, column=1, padx=(2, 0), sticky="w")
+        
+    def ventanaEliminar(self,fila):
+        elemento = fila[1]
+        self.codigo_eliminar=fila[0]
+        self.vEliminar=self.ventanaEmergente(350,180)
+
+        self.vEliminar.title("Eliminar Registro")
+        lbl_titulo = ctk.CTkLabel(
+            self.vEliminar,
+            text="¿Eliminar registro?",
+            font=EN_EMERGENTE ,
+            text_color=T_NEGRO,
+        )
+        lbl_titulo.pack(pady=(18, 4))
+        lbl_mensaje = ctk.CTkLabel(
+            self.vEliminar,
+            text=f"¿Seguro que deseas eliminar {elemento}?",
+            font=("poppins",14,"normal") ,
+            text_color=T_NEGRO ,
+        )
+        lbl_mensaje.pack(pady=(0, 16))
+
+        self.frameBotones=ctk.CTkFrame(self.vEliminar , fg_color="transparent")
+        self.frameBotones.pack(pady=4)
+
+        def confirmar():
+            self.vEliminar.destroy()
+            self.controlador.eliminarController(self.codigo_eliminar)
+
+        self.btn_aceptar=ctk.CTkButton(
+            self.frameBotones,
+            text="Aceptar",
+            font=T_CUERPO,
+            text_color=T_NEGRO,
+            fg_color=VERDE_LIMA_HOVER,
+            corner_radius=20,
+            command= confirmar,
+        )      
+        self.btn_aceptar.grid(row=0,column=0, padx=(0, 8), sticky="e")
+
+        self.btn_cancelar = ctk.CTkButton(
+            self.frameBotones,
+            text="Cancelar",
+            font=T_CUERPO,
+            fg_color="transparent",
+            border_width=2,
+            border_color=ROJO_OSCURO,
+            text_color=T_NEGRO,
+            corner_radius=20,
+            command=self.vEliminar.destroy
+        )
+        self.btn_cancelar.grid(row=0, column=1, padx=(8, 0), sticky="w")
 
         
 
