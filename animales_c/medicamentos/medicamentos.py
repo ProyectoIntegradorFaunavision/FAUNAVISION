@@ -52,7 +52,6 @@ class Medicamentos:
     @descripcion.setter
     def descripcion(self, descripcion):
         self._descripcion = descripcion
-        self._cantConcentrado = cantConcentrado
 
     def agregar(self):
         pass

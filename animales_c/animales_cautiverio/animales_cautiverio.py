@@ -1,3 +1,5 @@
+from conexionBD import conectar
+
 class AnimalesC:
 
     def __init__(
@@ -10,9 +12,8 @@ class AnimalesC:
         pesoInicial,
         estado_salud,
         observaciones,
-    ):
+        ):
         self._codigo = codigo
-        # (Actualización de atributos, se agrego crud especies y animales cautiverio)
         self._especie = especie
         self._sexo = sexo
         self._fNacimiento = fNacimiento
@@ -76,16 +77,18 @@ class AnimalesC:
     @fIngreso.setter
     def fIngreso(self, fIngreso):
         self._fIngreso = fIngreso
-        self._talla = talla
 
     @observaciones.setter
     def observaciones(self, observaciones):
         self._observaciones = observaciones
 
     def insertar(self):
-        try:
-            cursor.execute(
-                "insert into animales_c values(%s,%s,%s,%s,%s,%s,%s,%s)",
+        conexion = conectar()
+        if conexion:
+            try:
+                cursor = conexion.cursor()
+                cursor.execute(
+                "insert into animales_c values(?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     self._codigo,
                     self._especie,
@@ -97,28 +100,37 @@ class AnimalesC:
                     self._observaciones,
                 ),
             )
-            conexion.commit()
-            return True
-        except Exception as e:
-            print(f"Error al insertar animal: {e}")
-            return False
-        #     if tipo == "ENTRADA" or tipo == "E":
-        #         cursor.execute("UPDATE productos SET stock = stock + %s WHERE codigo = %s", (cantidad, codigo))
-        #     elif tipo == "SALIDA" or tipo == "S":
-        #         cursor.execute("UPDATE productos SET stock = stock - %s WHERE codigo = %s", (cantidad, codigo))
+                conexion.commit()
+                return True
+            except Exception as e:
+                print(f"Error al insertar animal: {e}")
+                return False
+                #     if tipo == "ENTRADA" or tipo == "E":
+                #         cursor.execute("UPDATE productos SET stock = stock + %s WHERE codigo = %s", (cantidad, codigo))
+                #     elif tipo == "SALIDA" or tipo == "S":
+                #         cursor.execute("UPDATE productos SET stock = stock - %s WHERE codigo = %s", (cantidad, codigo))
 
-        #     cursor.execute("UPDATE productos SET precio_total = precio_neto * stock WHERE codigo = %s", (codigo,))
+                #     cursor.execute("UPDATE productos SET precio_total = precio_neto * stock WHERE codigo = %s", (codigo,))
 
-        #     conexionBD.commit()
-        #     return True
-        #     return False
-        # except:
-        #     return False
+                #     conexionBD.commit()
+                #     return True
+                #     return False
+                # except:
+                #     return False
 
     def actualizar(self):
-        try:
-            cursor.execute(
-                "UPDATE animales_c SET especie=%s, sexo=%s, fNacimiento=%s, fIngreso=%s, pesoInicial=%s, estado_salud=%s, observaciones=%s WHERE codigo=%s",
+        conexion = conectar()
+        if conexion:
+                
+            try:
+                cursor = conexion.cursor()
+                cursor.execute(
+                    """
+                UPDATE animales_c SET especie=?,
+                sexo=?, fNacimiento=?, fIngreso=?, 
+                pesoInicial=?, estado_salud=?,
+                observaciones=? WHERE codigo=?
+                    """,
                 (
                     self._especie,
                     self._sexo,
@@ -130,33 +142,59 @@ class AnimalesC:
                     self._codigo,
                 ),
             )
-            conexion.commit()
-            return True
-        except:
-            return False
-
+                conexion.commit()
+                return True
+            except:
+                return False
     @staticmethod
-    def eliminar():
-        try:
-            cursor.execute("delete from animales_c where codigo=%s", (self._codigo,))
-            conexion.commit()
-            return True
-        except:
-            return False
-
+    def eliminar(criterio):
+        conexion = conectar()
+        if conexion:
+            try:
+                cursor = conexion.cursor()
+                cursor.execute("DELETE FROM animales_c WHERE codigo=?", (criterio,))
+                conexion.commit()
+                return True
+            except:
+                return False
     @staticmethod
     def mostrar():
-        try:
-            cursor.execute("select * from animales_c")
-            return cursor.fetchall()
-        except:
-            return []
+        conexion = conectar()
+        if conexion:
+            try:
+                cursor = conexion.cursor()
+                cursor.execute("SELECT * FROM animales_c")
+                return cursor.fetchall()
+            except:
+                return []
+    @staticmethod
+    def buscar(criterio):
+        if conexion:
+            try:
+                cursor = conexion.cursor()
+                cursor.execute(
+                    "SELECT * FROM animales_c WHERE codigo=? OR especie=?",
+                    (criterio,criterio)
+                )
+                return cursor.fetchone()
+            except:
+                return None
+    @staticmethod
+    def filtrar(criterio):
+        if conexion:
+            try:
+                patron = f"%{criterio}%"
+                cursor.execute(
+                    """
+                    SELECT * FROM especies
+                    WHERE LOWER(codigo) LIKE LOWER(?)
+                    OR LOWER(especie) LIKE LOWER(?)
+                    OR LOWER(estado_salud) LIKE LOWER(?)
+                    """,
+                    (patron, patron, patron),
+                )
+                
+                return cursor.fetchall()
+            except:
+                return []
 
-    def buscar(self):
-        pass
-
-    def limpiar(self):
-        pass
-
-    def filtrar(self):
-        pass
