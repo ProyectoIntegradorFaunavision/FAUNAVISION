@@ -95,9 +95,7 @@ class EspeciesController:
         valido, mensaje, datos = self.validar_campos_especie(
             codigo, especie_nombre, nombre_cientifico
         )
-        # if not codigo or not especie_nombre:
-        #     self.respuesta_sql(False)
-        #     return
+
         if not valido:
             CTkMessagebox.CTkMessagebox(
                 title="Validación",

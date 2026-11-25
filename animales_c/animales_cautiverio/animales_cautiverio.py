@@ -14,7 +14,6 @@ class AnimalesC:
         observaciones,
         ):
         self._codigo = codigo
-        # (Actualización de atributos, se agrego crud especies y animales cautiverio)
         self._especie = especie
         self._sexo = sexo
         self._fNacimiento = fNacimiento
@@ -126,7 +125,12 @@ class AnimalesC:
             try:
                 cursor = conexion.cursor()
                 cursor.execute(
-                "UPDATE animales_c SET especie=?, sexo=?, fNacimiento=?, fIngreso=?, pesoInicial=?, estado_salud=?, observaciones=? WHERE codigo=?",
+                    """
+                UPDATE animales_c SET especie=?,
+                sexo=?, fNacimiento=?, fIngreso=?, 
+                pesoInicial=?, estado_salud=?,
+                observaciones=? WHERE codigo=?
+                    """,
                 (
                     self._especie,
                     self._sexo,
@@ -154,7 +158,7 @@ class AnimalesC:
             except:
                 return False
     @staticmethod
-    def mostrar(criterio):
+    def mostrar():
         conexion = conectar()
         if conexion:
             try:
@@ -179,18 +183,16 @@ class AnimalesC:
     def filtrar(criterio):
         if conexion:
             try:
-                cursor = conexion.cursor()
-                cursor.execute("""
-                    SELECT * FROM animales_c
-                    WHERE cast (codigo as text) like?
-                    OR nombre_especie like ?
-                    or nombre_cientifico like ?
-                    order by codigo
-                    """,(
-                        f"%{criterio}%",
-                        f"%{criterio}%",
-
-                    ))
+                patron = f"%{criterio}%"
+                cursor.execute(
+                    """
+                    SELECT * FROM especies
+                    WHERE LOWER(codigo) LIKE LOWER(?)
+                    OR LOWER(especie) LIKE LOWER(?)
+                    OR LOWER(estado_salud) LIKE LOWER(?)
+                    """,
+                    (patron, patron, patron),
+                )
                 
                 return cursor.fetchall()
             except:

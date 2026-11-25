@@ -25,7 +25,7 @@ ROJO_PILDORA = "#FF0000"
 ROJO_OSCURO = "#CC0000"
 T_NEGRO = "#000000"
 EN_EMERGENTE = ("poppins", 20, "bold")
-T_CUERPO = ("poppins", 14, "normal")
+T_CUERPO = ("poppins", 16, "normal")
 C_T_ENTRY= "#A9A9A9"
 
 
@@ -67,7 +67,7 @@ class EspeciesView(ctk.CTk):
         # Título de la vista
         self.lbl_titulo = ctk.CTkLabel(
             self.menuSuperiorFrame, text="Especies", 
-            font=("Inder", 25, "bold"), text_color="#000000"
+            font=("Inder", 30, "bold"), text_color="#000000"
         )
         self.lbl_titulo.pack(side="left", padx=(25,0))
 
@@ -83,7 +83,7 @@ class EspeciesView(ctk.CTk):
         for texto, funcion_comando in navegacion:
             btn_menuSuperior = ctk.CTkButton(
                 self.menuSuperiorFrame, text=texto, width=50, height=30,
-                fg_color="transparent", font=("Inder", 11, "normal"), text_color="#000000",
+                fg_color="transparent", font=("Inder", 12, "normal"), text_color="#000000",
                 hover_color="#EFEFEF", command=funcion_comando
             )
             btn_menuSuperior.pack(side="right", padx=10)
@@ -122,12 +122,12 @@ class EspeciesView(ctk.CTk):
         self.entry_buscar.grid(row=0, column=0, sticky="ew", padx=(14, 4), pady=2)
         self.entry_buscar.bind("<KeyRelease>", lambda _e: self.buscar_tabla())
 
-        # Botón interno para enviar a buscar
+        # Icono interno para enviar a buscar
         self.lbl_buscar = ctk.CTkLabel(
             self.buscar_contenedor,
             text="🔍",
             text_color=T_NEGRO,
-            font=("poppins", 15, "bold"),
+            font=("poppins", 15, "normal"),
             
         )
         self.lbl_buscar.grid(row=0, column=1, padx=(0, 15), pady=4)
@@ -171,7 +171,7 @@ class EspeciesView(ctk.CTk):
         self.titulos_tabla = tk.Frame(
             self.tabla_especies,
             bg=VERDE_HEADER_TABLA,
-            height=35,
+            height=40,
         )
         self.titulos_tabla.pack(fill="x", pady=(0, 1))
         self.titulos_tabla.pack_propagate(False)
@@ -187,7 +187,7 @@ class EspeciesView(ctk.CTk):
             lbl = tk.Label(
                 self.titulos_tabla,
                 text=texto,
-                font=("poppins", 12, "bold"),
+                font=("poppins", 14, "bold"),
                 fg="#111111",
                 bg=VERDE_HEADER_TABLA,
                 anchor="w" if col_idx > 0 else "center",
@@ -227,8 +227,6 @@ class EspeciesView(ctk.CTk):
                         font=("poppins",15,"normal"),
                         fg_color="transparent",
                         hover_color="#6D8927",
-                        border_width=1.5,
-                        border_color=VERDE_LIMA_HOVER,
                         text_color=T_NEGRO,
                         corner_radius=8,
                         cursor="hand2",
@@ -244,8 +242,6 @@ class EspeciesView(ctk.CTk):
                         font=("poppins",15,"normal"),
                         fg_color="transparent",
                         hover_color=ROJO_PILDORA,
-                        border_width=1.5,
-                        border_color=ROJO_OSCURO,
                         text_color=T_NEGRO,
                         corner_radius=8,
                         cursor="hand2",
@@ -265,7 +261,7 @@ class EspeciesView(ctk.CTk):
                     lbl = tk.Label(
                         fila_frame,
                         text="",
-                        font=("Poppins", 10),
+                        font=("Poppins", 15),
                         fg="#111111",
                         bg=FONDO_BLANCO,
                         anchor="w" if c > 0 else "center",
@@ -340,7 +336,7 @@ class EspeciesView(ctk.CTk):
                     str(dato_celda[2]),
                 ]
                 for c_idx, valor in enumerate(valores):
-                    celdas[c_idx].configure(text=valor, font=("Poppins", 10))
+                    celdas[c_idx].configure(text=valor, font=("Poppins", 14))
 
                 acciones = celdas[4]
                 acciones["eliminar"].pack(side="left", padx=(0, 6))

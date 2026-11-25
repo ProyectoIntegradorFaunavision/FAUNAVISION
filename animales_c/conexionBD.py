@@ -13,7 +13,7 @@ def crear_db():
             ''')
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS animales_c(
-                codigo INTEGER PRIMARY KEY,
+                codigo TEXT PRIMARY KEY,
                 especie INTEGER NOT NULL,
                 sexo TEXT NOT NULL,
                 fNacimiento TEXT NOT NULL,
