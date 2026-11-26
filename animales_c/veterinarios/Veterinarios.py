@@ -1,4 +1,5 @@
 
+
 import sqlite3
 from conexionBD import conectar
 
@@ -6,7 +7,7 @@ from conexionBD import conectar
 class Veterinarios:
     def __init__(self, num_empleado, nombre, apellido1, apellido2, cargo,
                  calle, col, num, codigo_postal, telefono, correo):
-
+        registros_prueba = []
         self.num_empleado = num_empleado
         self.nombre = nombre
         self.apellido1 = apellido1
@@ -303,9 +304,8 @@ class Veterinarios:
                 return cursor.fetchall()
 
             except sqlite3.Error as e:
-                print("Error al filtrar veterinarios:", e)
-                return []
-
+                print("ERROR SQLITE AL INSERTAR:", repr(e))
+                return False
             finally:
                 conexion.close()
 
